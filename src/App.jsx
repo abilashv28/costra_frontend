@@ -1,41 +1,62 @@
-import React, { useState } from "react";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import Dashboard from "./pages/Dashboard";
-import SignIn from "./components/SignIn";
-import SignUp from "./components/SignUp";
+import { useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import AppRoutes from "./routes/AppRoutes";
+import Layout from "./components/layout/Layout";
+import useAuthStore from "./stores/authStore";
 
-const AppContent = () => {
-  const { isAuthenticated, loading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+const queryClient = new QueryClient();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+export default function App() {
+  const logout = useAuthStore((state) => state.logout);
+  const sessionExpiry = useAuthStore((state) => state.sessionExpiry);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  if (!isAuthenticated) {
-    return isSignUp ? (
-      <SignUp onSwitchToSignIn={() => setIsSignUp(false)} />
-    ) : (
-      <SignIn onSwitchToSignUp={() => setIsSignUp(true)} />
-    );
-  }
+  useEffect(() => {
+    if (!isAuthenticated || !sessionExpiry) return;
 
-  return <Dashboard />;
-};
+    const remainingTime = sessionExpiry - Date.now();
+    if (remainingTime <= 0) {
+      logout();
+      window.location.href = "/login";
+      return;
+    }
 
-function App() {
+    // Warning 5 minutes before logout
+    const warningTime = remainingTime - 5 * 60 * 1000;
+    let warningTimeoutId;
+    if (warningTime > 0) {
+      warningTimeoutId = setTimeout(() => {
+        toast.warn("Your session will expire in 5 minutes. Please save your work.", {
+          icon: "⚠️",
+          autoClose: 5000,
+          position: "top-right",
+          pauseOnHover: true,
+        });
+      }, warningTime);
+    }
+
+    const logoutTimeoutId = setTimeout(() => {
+      logout();
+      window.location.href = "/login";
+    }, remainingTime);
+
+    return () => {
+      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+      clearTimeout(logoutTimeoutId);
+    };
+  }, [isAuthenticated, sessionExpiry, logout]);
+
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Layout>
+          <AppRoutes />
+        </Layout>
+        <ToastContainer position="top-right" theme="colored" pauseOnHover />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
-
-export default App;

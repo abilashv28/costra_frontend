@@ -1,7 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  button,
+  input[type="submit"],
+  input[type="button"] {
+    border-radius: 9999px !important;
+    padding: 0.75rem 1.75rem !important;
+    min-height: 3rem;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+    transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  }
+
+  button:hover:not(:disabled),
+  input[type="submit"]:hover:not(:disabled),
+  input[type="button"]:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  button.bg-blue-600 {
+    @apply bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-500 text-white;
+  }
+
+  button.bg-blue-600:hover {
+    @apply from-blue-500 via-cyan-400 to-sky-600;
+  }
+
+  button:disabled,
+  input[type="submit"]:disabled,
+  input[type="button"]:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+  }
+}
+
+html,
 body {
-  font-family: "Inter", sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
