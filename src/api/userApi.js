@@ -10,7 +10,14 @@ export const createUser = (userData) => {
     headers: {
       Authorization: token ? `Bearer ${token}` : undefined,
     },
+    toastMessage: "User created successfully!",
   });
 };
-export const updateUser = (id, userData) => api.put(`/users/${id}`, userData);
-export const deleteUser = (id) => api.delete(`/users/${id}`);
+export const updateUser = (id, userData) =>
+  api.put(`/users/${id}`, userData, {
+    toastMessage: "User updated successfully!",
+  });
+export const deleteUser = (id) =>
+  api.delete(`/users/${id}`, {
+    toastMessage: "User deleted successfully!",
+  });

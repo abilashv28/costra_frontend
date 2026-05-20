@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "react-toastify";
+import { showSuccessToast, showErrorToast } from "../utils/toastHelper";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -22,18 +22,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const shouldShowToastForResponse = (config) => {
+  const method = config?.method?.toLowerCase();
+  return ["post", "put", "patch", "delete"].includes(method);
+};
+
+const getSuccessToastMessage = (response) => {
+  return response.data?.message || response.config?.toastMessage || "Operation completed successfully!";
+};
+
 api.interceptors.response.use(
   (response) => {
-    // Show success toast if response has success: true
-    if (response.data && response.data.success) {
-      toast.success(response.data.message || "Operation completed successfully!");
+    // Show success toast only for create/update/delete actions
+    if (shouldShowToastForResponse(response.config) && response.data?.success) {
+      showSuccessToast(getSuccessToastMessage(response));
     }
     return response.data;
   },
   (error) => {
-    // Show error toast
+    const config = error.response?.config || error.config;
     const message = error.response?.data?.message || "An error occurred";
-    toast.error(message);
+    if (shouldShowToastForResponse(config)) {
+      showErrorToast(message);
+    }
     return Promise.reject(error);
   }
 );

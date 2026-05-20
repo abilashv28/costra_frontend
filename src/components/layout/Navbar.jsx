@@ -55,27 +55,27 @@ export default function Navbar({ isSidebarOpen, isSidebarCollapsed, toggleSideba
           {isAuthenticated && (
             <>
               {isAdminOrSuperAdmin && (
-                <Link to="/" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                <Link id="Dashboard" to="/" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
                   <PieChart size={32} />
                   <span className={`${isSidebarCollapsed ? "sr-only" : "ml-2"}`}>Dashboard</span>
                 </Link>
               )}
-              <Link to="/projects" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
+              <Link id="Projects" to="/projects" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
                 <Building2 size={32} />
                 <span className={`${isSidebarCollapsed ? "sr-only" : "ml-2"}`}>Projects</span>
               </Link>
-              <Link to="/expenses" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
+              <Link id="Expenses" to="/expenses" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
                 <Wallet size={32} />
                 <span className={`${isSidebarCollapsed ? "sr-only" : "ml-2"}`}>Expenses</span>
               </Link>
               {isAdminOrSuperAdmin && (
-                <Link to="/payment" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                <Link id="Payment" to="/payment" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
                   <CreditCard size={32} />
                   <span className={`${isSidebarCollapsed ? "sr-only" : "ml-2"}`}>Payment</span>
                 </Link>
               )}
               {isAdminOrSuperAdmin && (
-                <Link to="/users" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                <Link id="Users" to="/users" onClick={handleNavLinkClick} className={`${theme.layout.navLink} ${isSidebarCollapsed ? "justify-center" : ""}`}>
                   <Users size={32} />
                   <span className={`${isSidebarCollapsed ? "sr-only" : "ml-2"}`}>Users</span>
                 </Link>

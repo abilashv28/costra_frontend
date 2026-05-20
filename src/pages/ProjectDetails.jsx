@@ -344,13 +344,12 @@ export default function ProjectDetails() {
                     : "Add stage payment details and save."}
                 </p>
               </div>
-              <button
-                type="button"
+              <span
                 onClick={handleCancel}
-                className="text-gray-500 hover:text-gray-700 font-semibold"
+                className="text-gray-500 hover:text-gray-700 font-semibold cursor-pointer transition text-sm md:text-base"
               >
                 ✕
-              </button>
+              </span>
             </div>
 
             <form className="space-y-4 flex-1" onSubmit={handleSubmit}>

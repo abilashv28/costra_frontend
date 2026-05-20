@@ -1,11 +1,7 @@
 import axios from './axios';
 
-export const getCategories = async () => {
-  const response = await axios.get('/categories');
-  return response.data;
-};
-
-export const createCategory = async (data) => {
-  const response = await axios.post('/categories', data);
-  return response.data;
-};
+export const getCategories = () => axios.get('/categories');
+export const createCategory = (data) =>
+  axios.post('/categories', data, {
+    toastMessage: 'Category created successfully!',
+  });

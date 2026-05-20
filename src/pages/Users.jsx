@@ -155,7 +155,6 @@ export default function Users() {
 
       {isPanelOpen && (
         <div className="fixed inset-0 z-50 flex md:items-center md:justify-end">
-          <button type="button" onClick={handleCancel} className="absolute inset-0 bg-black/40 md:hidden" />
           <div className="relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
@@ -164,9 +163,9 @@ export default function Users() {
                   Add user details and save.
                 </p>
               </div>
-              <button type="button" onClick={handleCancel} className="text-gray-500 hover:text-gray-700 font-semibold">
+              <span onClick={handleCancel} className="text-gray-500 hover:text-gray-700 font-semibold cursor-pointer transition text-sm md:text-base">
                 ✕
-              </button>
+              </span>
             </div>
 
             <form className="space-y-4 flex-1" onSubmit={handleSubmit}>
@@ -212,7 +211,6 @@ export default function Users() {
 
       {deleteConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button type="button" onClick={cancelDelete} className="absolute inset-0 bg-black/40" />
           <div className="relative rounded-lg bg-white p-4 md:p-6 shadow-xl max-w-sm w-full">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Confirm Delete</h3>
             <p className="text-sm md:text-base text-gray-600 mb-6">

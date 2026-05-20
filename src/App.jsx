@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { showWarningToast } from "./utils/toastHelper";
 import AppRoutes from "./routes/AppRoutes";
 import Layout from "./components/layout/Layout";
 import useAuthStore from "./stores/authStore";
+import { ToastContainer } from "./components/common/Toast";
 
 const queryClient = new QueryClient();
 
@@ -29,12 +29,7 @@ export default function App() {
     let warningTimeoutId;
     if (warningTime > 0) {
       warningTimeoutId = setTimeout(() => {
-        toast.warn("Your session will expire in 5 minutes. Please save your work.", {
-          icon: "⚠️",
-          autoClose: 5000,
-          position: "top-right",
-          pauseOnHover: true,
-        });
+        showWarningToast("Your session will expire in 5 minutes. Please save your work.", 5000);
       }, warningTime);
     }
 
@@ -55,7 +50,7 @@ export default function App() {
         <Layout>
           <AppRoutes />
         </Layout>
-        <ToastContainer position="top-right" theme="colored" pauseOnHover />
+        <ToastContainer />
       </BrowserRouter>
     </QueryClientProvider>
   );
