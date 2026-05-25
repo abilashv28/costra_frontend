@@ -1,16 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTour } from "@reactour/tour";
 import useAuthStore from "../stores/authStore";
 
 export default function TourGuide() {
   const { user } = useAuthStore();
   const { setIsOpen, setCurrentStep, setSteps } = useTour();
+  const [isMobile, setIsMobile] = useState(false);
 
-  const getTourSteps = (userRole) => {
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const getTourSteps = (userRole, isMobile) => {
     const isAdminOrSuperAdmin = userRole === "admin" || userRole === "super admin";
 
-    // Common steps for all roles
-    const commonSteps = [
+    // Welcome step (desktop only - sidebar visible on desktop)
+    const welcomeStep = !isMobile ? [
       {
         selector: "#tour-sidebar",
         content: (
@@ -20,10 +31,20 @@ export default function TourGuide() {
           </div>
         )
       },
+    ] : [
+      {
+        selector: "#tour-header",
+        content: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Welcome to Costro</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">Let me show you around the application. Tap the menu icon to access navigation.</p>
+          </div>
+        )
+      },
     ];
 
-    // Admin/Superadmin specific steps
-    const adminSteps = [
+    // Admin/Superadmin specific steps (skip on mobile for sidebar items)
+    const adminSteps = !isMobile ? [
       {
         selector: "#Dashboard",
         content: (
@@ -42,10 +63,10 @@ export default function TourGuide() {
           </div>
         )
       },
-    ];
+    ] : [];
 
-    // Steps for all authenticated users
-    const userSteps = [
+    // Steps for all authenticated users (skip on mobile)
+    const userSteps = !isMobile ? [
       {
         selector: "#Expenses",
         content: (
@@ -55,10 +76,10 @@ export default function TourGuide() {
           </div>
         )
       },
-    ];
+    ] : [];
 
-    // Payment steps (admin/superadmin only)
-    const paymentSteps = [
+    // Payment steps (admin/superadmin only, skip on mobile)
+    const paymentSteps = !isMobile && isAdminOrSuperAdmin ? [
       {
         selector: "#Payment",
         content: (
@@ -68,10 +89,10 @@ export default function TourGuide() {
           </div>
         )
       },
-    ];
+    ] : [];
 
-    // Users steps (admin/superadmin only)
-    const usersSteps = [
+    // Users steps (admin/superadmin only, skip on mobile)
+    const usersSteps = !isMobile && isAdminOrSuperAdmin ? [
       {
         selector: "#Users",
         content: (
@@ -81,10 +102,19 @@ export default function TourGuide() {
           </div>
         )
       },
-    ];
+    ] : [];
 
     // User menu and main area (for all)
     const finaleSteps = [
+      {
+        selector: "#tour-main",
+        content: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Main Workspace</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">This is your main working area where you'll spend most of your time. All your data and operations happen here.</p>
+          </div>
+        )
+      },
       {
         selector: "#tour-header",
         content: (
@@ -94,19 +124,10 @@ export default function TourGuide() {
           </div>
         )
       },
-      {
-        selector: "#tour-main",
-        content: (
-          <div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-900">Main Workspace</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">This is your main working area where you'll spend most of your time. All your data and operations happen here.</p>
-          </div>
-        )
-      }
     ];
 
-    // Combine steps based on role
-    let allSteps = [...commonSteps];
+    // Combine steps based on role and device type
+    let allSteps = [...welcomeStep];
 
     if (isAdminOrSuperAdmin) {
       allSteps = [...allSteps, ...adminSteps];
@@ -126,8 +147,8 @@ export default function TourGuide() {
   useEffect(() => {
     if (!user || Number(user.onboarding_step) !== 0) return;
 
-    // Update tour steps based on user role
-    const steps = getTourSteps(user.role);
+    // Update tour steps based on user role and device type
+    const steps = getTourSteps(user.role, isMobile);
     setSteps(steps);
 
     // ✅ small delay so layout is ready
@@ -137,7 +158,7 @@ export default function TourGuide() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [user]);
+  }, [user, isMobile]);
 
   return null;
 }

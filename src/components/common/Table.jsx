@@ -263,12 +263,12 @@ function SwipeableCard({
       {row.actions}
     </div>
   ) : (onView || onEdit || onDelete) ? (
-    <div className="absolute inset-y-0 right-0 flex items-center pr-2 space-x-1">
+    <div className="absolute inset-y-0 right-0 flex flex-col items-center justify-center pr-2 space-y-2">
       {onView && (
         <button
           type="button"
           onClick={() => onView?.(row)}
-          className="flex h-full items-center justify-center rounded-l bg-blue-500 px-4 text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
         >
           <Eye size={18} />
         </button>
@@ -278,7 +278,7 @@ function SwipeableCard({
         <button
           type="button"
           onClick={() => onEdit?.(row)}
-          className="flex h-full items-center justify-center bg-yellow-500 px-4 text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
         >
           <Edit3 size={18} />
         </button>
@@ -288,7 +288,7 @@ function SwipeableCard({
         <button
           type="button"
           onClick={() => onDelete?.(row)}
-          className="flex h-full items-center justify-center rounded-r bg-red-500 px-4 text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
         >
           <Trash2 size={18} />
         </button>
@@ -296,7 +296,7 @@ function SwipeableCard({
     </div>
   ) : null;
 
-  const swipeTranslate = isOpen ? "-translate-x-[148px]" : "translate-x-0";
+  const swipeTranslate = isOpen ? "-translate-x-[100px]" : "translate-x-0";
 
   return (
     <div className="relative overflow-hidden rounded-lg">
