@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { Eye, Edit3, Trash2 } from "lucide-react/dist/esm/lucide-react.mjs";
 
 import {
   createProject,
@@ -222,10 +223,37 @@ export default function Projects() {
 
         <Table
           columns={columns}
-          data={filteredProjects}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          data={filteredProjects.map((project) => ({
+            ...project,
+            actions: (
+              <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleView(project)}
+                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
+                  title="View"
+                >
+                  <Eye size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleEdit(project)}
+                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
+                  title="Edit"
+                >
+                  <Edit3 size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(project)}
+                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-red-500 hover:text-red-600"
+                  title="Delete"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ),
+          }))}
         />
       </section>
 

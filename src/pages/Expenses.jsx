@@ -294,7 +294,7 @@ export default function Expenses() {
                 <span className="text-gray-400 text-sm">No file</span>
               ),
               actions: (
-                <div className="flex items-center gap-1 md:gap-2">
+                <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
                   <button
                     type="button"
                     onClick={() => handleEdit(expense)}
