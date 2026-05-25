@@ -115,6 +115,7 @@ export default function SetPassword() {
               onChange={handleChange}
               required
               placeholder="Enter your password"
+              showCriteria
             />
 
             <PasswordInput

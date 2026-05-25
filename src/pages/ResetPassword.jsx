@@ -104,6 +104,7 @@ export default function ResetPassword() {
               onChange={handleChange}
               required
               placeholder="Enter your new password"
+              showCriteria
             />
 
             <PasswordInput

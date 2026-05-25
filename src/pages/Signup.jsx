@@ -6,14 +6,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../api/authApi";
 import { getCompanies, createCompany } from "../api/companyApi";
 import { signupSchema } from "../schemas/authSchemas";
-import useAuthStore from "../stores/authStore";
 import Input from "../components/common/Input";
 import PasswordInput from "../components/common/PasswordInput";
 import Select from "../components/common/Select";
 
 export default function Signup() {
   const navigate = useNavigate();
-  const loginStore = useAuthStore((state) => state.login);
   const queryClient = useQueryClient();
   const [newCompanyName, setNewCompanyName] = useState("");
 
@@ -45,9 +43,8 @@ export default function Signup() {
 
   const signupMutation = useMutation({
     mutationFn: signup,
-    onSuccess: (response) => {
-      loginStore({ user: response.data.user, token: response.data.token });
-      navigate("/");
+    onSuccess: () => {
+      navigate("/login");
     },
     onError: () => {
       // Error handled by form
@@ -154,6 +151,7 @@ export default function Signup() {
           <PasswordInput
             label="Password"
             placeholder="••••••••"
+            showCriteria
             {...register("password")}
             error={errors.password?.message}
           />
