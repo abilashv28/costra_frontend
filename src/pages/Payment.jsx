@@ -8,6 +8,7 @@ import useAuthStore from "../stores/authStore";
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Table from "../components/common/Table";
+import formatIndianAmount from "../utils/formatAmount";
 import Unauthorized from "./Unauthorized";
 
 const PAYMENT_MODES = ["cash", "check", "online", "credit"];
@@ -22,6 +23,9 @@ export default function Payment() {
     stage_id: "",
     expected_amount: "",
     amount: "",
+    gst_applicable: false,
+    gst_percent: "",
+    gst_amount: "",
     payment_mode: "",
     payment_date: new Date().toISOString().split("T")[0],
     notes: "",
@@ -95,8 +99,20 @@ export default function Payment() {
   }
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    const val = type === "checkbox" ? checked : value;
+    setForm((prev) => {
+      const next = { ...prev, [name]: val };
+      // Recalculate gst_amount when amount or gst_percent or gst_applicable changes
+      const amt = parseFloat(next.amount || 0);
+      const pct = parseFloat(next.gst_percent || 0);
+      if (next.gst_applicable) {
+        next.gst_amount = isNaN(amt) ? "" : (amt * pct / 100).toFixed(2);
+      } else {
+        next.gst_amount = "";
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (event) => {
@@ -108,6 +124,9 @@ export default function Payment() {
       stage_name: selectedStage?.name || "",
       expected_amount: form.expected_amount ? parseFloat(form.expected_amount) : null,
       amount: parseFloat(form.amount),
+      gst_applicable: !!form.gst_applicable,
+      gst_percent: form.gst_applicable ? (form.gst_percent ? parseFloat(form.gst_percent) : 0) : null,
+      gst_amount: form.gst_applicable ? (form.gst_amount ? parseFloat(form.gst_amount) : 0) : null,
       payment_mode: form.payment_mode,
       payment_date: form.payment_date,
       notes: form.notes.trim(),
@@ -192,6 +211,7 @@ export default function Payment() {
             columns={[
               { key: "projectName", label: "Project" },
               { key: "stage_name", label: "Stage Name" },
+                  { key: "gst_amount", label: "GST" },
               { key: "expected_amount", label: "Expected Amount" },
               { key: "amount", label: "Amount" },
               { key: "payment_mode", label: "Payment Mode" },
@@ -200,10 +220,11 @@ export default function Payment() {
             ]}
             data={allPaymentsData.map((payment) => ({
               ...payment,
+              gst_amount: payment.gst_amount ? formatIndianAmount(parseFloat(payment.gst_amount)) : "—",
               expected_amount: payment.expected_amount
-                ? `$${parseFloat(payment.expected_amount).toFixed(2)}`
+                ? formatIndianAmount(parseFloat(payment.expected_amount))
                 : "—",
-              amount: `$${parseFloat(payment.amount).toFixed(2)}`,
+              amount: formatIndianAmount(parseFloat(payment.amount)),
               actions: (
                 <div className="flex items-center gap-1 md:gap-2">
                   <button
@@ -316,6 +337,35 @@ export default function Payment() {
                   step="0.01"
                   required
                 />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    name="gst_applicable"
+                    checked={!!form.gst_applicable}
+                    onChange={handleChange}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm font-medium text-gray-700">GST applicable</span>
+                </label>
+
+                {form.gst_applicable && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      name="gst_percent"
+                      value={form.gst_percent}
+                      onChange={handleChange}
+                      placeholder="GST %"
+                      min="0"
+                      step="0.01"
+                      className="rounded border border-gray-300 px-3 py-2 text-sm w-32"
+                    />
+                    <div className="text-sm text-gray-700">GST Amount: <span className="font-semibold">{form.gst_amount ? form.gst_amount : "0.00"}</span></div>
+                  </div>
+                )}
               </div>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">

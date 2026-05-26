@@ -17,6 +17,7 @@ import {
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Table from "../components/common/Table";
+import formatIndianAmount from "../utils/formatAmount";
 
 export default function Projects() {
   const queryClient = useQueryClient();
@@ -225,6 +226,7 @@ export default function Projects() {
           columns={columns}
           data={filteredProjects.map((project) => ({
             ...project,
+            budget: formatIndianAmount(project.budget),
             actions: (
               <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
                 <button

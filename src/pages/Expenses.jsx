@@ -9,6 +9,7 @@ import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Table from "../components/common/Table";
 import useDateFormatter from "../hooks/useDateFormatter";
+import formatIndianAmount from "../utils/formatAmount";
 
 export default function Expenses() {
   const queryClient = useQueryClient();
@@ -17,6 +18,9 @@ export default function Expenses() {
     project_id: "",
     category_id: "",
     amount: "",
+    gst_applicable: false,
+    gst_percent: "",
+    gst_amount: "",
     expense_date: "",
     notes: "",
     file_url: ""
@@ -84,14 +88,27 @@ export default function Expenses() {
   });
 
   const handleChange = event => {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
+    const val = type === "checkbox" ? checked : value;
 
     if (name === "category_id" && value === "create") {
       setShowCreateCategory(true);
       return;
     }
 
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => {
+      const next = { ...prev, [name]: val };
+      if (name === "amount" || name === "gst_percent" || name === "gst_applicable") {
+        const amt = parseFloat(next.amount || 0);
+        const pct = parseFloat(next.gst_percent || 0);
+        if (next.gst_applicable) {
+          next.gst_amount = isNaN(amt) ? "" : (amt * pct / 100).toFixed(2);
+        } else {
+          next.gst_amount = "";
+        }
+      }
+      return next;
+    });
   };
 
   const handleFileSelect = async event => {
@@ -276,7 +293,7 @@ export default function Expenses() {
           data={
             filteredExpenses.map(expense => ({
               ...expense,
-              amount: `₹${expense.amount}`,
+              amount: formatIndianAmount(expense.amount),
               expense_date: formatDate(expense.expense_date),
               project_name: expense.Project?.name || "N/A",
               category_name: expense.Category?.name || "N/A",
@@ -342,6 +359,35 @@ export default function Expenses() {
                 step="0.01"
                 required
               />
+
+              <div className="flex items-center gap-4">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    name="gst_applicable"
+                    checked={!!form.gst_applicable}
+                    onChange={handleChange}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm font-medium text-gray-700">GST applicable</span>
+                </label>
+
+                {form.gst_applicable && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      name="gst_percent"
+                      value={form.gst_percent}
+                      onChange={handleChange}
+                      placeholder="GST %"
+                      min="0"
+                      step="0.01"
+                      className="rounded border border-gray-300 px-3 py-2 text-sm w-32"
+                    />
+                    <div className="text-sm text-gray-700">GST Amount: <span className="font-semibold">{form.gst_amount ? form.gst_amount : "0.00"}</span></div>
+                  </div>
+                )}
+              </div>
 
               <Input
                 label="Expense Date"
@@ -449,7 +495,7 @@ export default function Expenses() {
           <div className="relative rounded-lg bg-white p-4 md:p-6 shadow-xl max-w-sm w-full">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Confirm Delete</h3>
             <p className="text-sm md:text-base text-gray-600 mb-6">
-              Are you sure you want to delete this expense (₹{deleteConfirmation.amount})? This action cannot be undone.
+              Are you sure you want to delete this expense ({formatIndianAmount(deleteConfirmation.amount)})? This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-3 flex-wrap">
               <button
