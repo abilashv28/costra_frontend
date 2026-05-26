@@ -75,7 +75,7 @@ export default function Signup() {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Create Account</h2>
           <p className="text-sm md:text-base text-gray-600 mt-1">Join Costro today</p>
         </div>
-
+        <div>test</div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             label="Full Name"
