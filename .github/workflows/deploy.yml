@@ -24,7 +24,7 @@ jobs:
       - name: Build Application
         run: npm run build
         env:
-        VITE_BACKEND_URL: https://costraapi.truthordarefun.com/api
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
