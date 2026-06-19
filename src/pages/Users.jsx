@@ -115,7 +115,7 @@ export default function Users() {
             }));
             setIsPanelOpen(true);
           }}
-          className="inline-flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition w-full sm:w-auto gap-2">
+          className="inline-flex items-center justify-center rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white shadow-sm transition w-full sm:w-auto gap-2">
           <UserPlus size={16} />
           Create User
         </button>
@@ -133,6 +133,8 @@ export default function Users() {
         </div>
         <h2 className="text-lg md:text-xl font-semibold mb-4">Users List</h2>
         <Table
+          filterable={true}
+          excludeFilters={["actions"]}
           columns={columns}
           data={
             filteredUsers.map((user) => ({
@@ -153,9 +155,12 @@ export default function Users() {
         />
       </section>
 
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex md:items-center md:justify-end">
-          <div className="relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4">
+      <div className={`fixed inset-0 z-[100] flex md:items-center md:justify-end ${isPanelOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div
+          className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ease-out ${isPanelOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={handleCancel}
+        />
+        <div className={`relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4 transition-transform duration-300 ease-out ${isPanelOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-[120%]"}`}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl md:text-2xl font-semibold">New User</h2>
@@ -200,17 +205,17 @@ export default function Users() {
                 <button
                   type="submit"
                   disabled={mutation.isLoading}
-                  className="rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {mutation.isLoading ? "Saving..." : "Create"}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
 
       {deleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={cancelDelete} />
           <div className="relative rounded-lg bg-white p-4 md:p-6 shadow-xl max-w-sm w-full">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Confirm Delete</h3>
             <p className="text-sm md:text-base text-gray-600 mb-6">

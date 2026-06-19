@@ -255,6 +255,8 @@ export default function ProjectDetails() {
           </div>
         ) : (
           <Table
+            filterable={true}
+            excludeFilters={["actions", "file", "notes"]}
             columns={columns}
             data={
               payments.map((payment) => {
@@ -452,7 +454,7 @@ export default function ProjectDetails() {
                 <button
                   type="submit"
                   disabled={createMutation.isLoading}
-                  className="rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createMutation.isLoading
                     ? "Saving..."

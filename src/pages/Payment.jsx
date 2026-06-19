@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createProjectPayment, getProjectPayments, deleteProjectPayment } from "../api/projectPaymentApi";
 import { getProjects } from "../api/projectApi";
 import { getPaymentStages, createPaymentStage } from "../api/paymentStagesApi";
-import { Plus, Trash2 } from "lucide-react/dist/esm/lucide-react.mjs";
+import { Plus, Trash2, Download } from "lucide-react/dist/esm/lucide-react.mjs";
+import { downloadExcel } from "../utils/exportUtils";
 import useAuthStore from "../stores/authStore";
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
@@ -177,22 +178,45 @@ export default function Payment() {
 
   const stages = stagesData?.data || [];
 
+  const exportHeaders = [
+    { label: "Date", key: "payment_date", format: (v) => v ? new Date(v).toLocaleDateString() : "" },
+    { label: "Project", key: "projectName" },
+    { label: "Stage Name", key: "stage_name" },
+    { label: "Amount", key: "amount" },
+    { label: "Expected", key: "expected_amount" },
+    { label: "GST", key: "gst_amount" },
+    { label: "Mode", key: "payment_mode" },
+    { label: "Notes", key: "notes" },
+  ];
+
+  const handleExportExcel = () => {
+    downloadExcel(allPaymentsData || [], exportHeaders, "Payments", "payments.xlsx");
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between rounded bg-white p-4 md:p-6 shadow">
+      <div className="flex flex-col gap-4 rounded bg-white p-4 md:p-6 shadow sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl md:text-2xl font-bold">Payments</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">
             Manage project payments
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsPanelOpen(true)}
-          className="inline-flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition"
-        >
-          Add Payment
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center justify-center gap-2 rounded border border-gray-300 bg-white hover:bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition flex-1 sm:flex-auto"
+            title="Export to Excel">
+            <Download size={16} /> Excel
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsPanelOpen(true)}
+            className="inline-flex items-center justify-center gap-1 rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition flex-[2] sm:flex-auto">
+            <Plus size={16} /> Add
+          </button>
+        </div>
       </div>
 
       {/* Payments Table */}
@@ -208,10 +232,12 @@ export default function Payment() {
           <p className="text-gray-500 text-center py-8">Loading payments...</p>
         ) : allPaymentsData && allPaymentsData.length > 0 ? (
           <Table
+            filterable={true}
+            excludeFilters={["actions", "receipt", "notes"]}
             columns={[
               { key: "projectName", label: "Project" },
               { key: "stage_name", label: "Stage Name" },
-                  { key: "gst_amount", label: "GST" },
+              { key: "gst_amount", label: "GST" },
               { key: "expected_amount", label: "Expected Amount" },
               { key: "amount", label: "Amount" },
               { key: "payment_mode", label: "Payment Mode" },
@@ -246,10 +272,12 @@ export default function Payment() {
         )}
       </section>
 
-      {/* Add/Edit Payment Panel */}
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex md:items-center md:justify-end">
-          <div className="relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4">
+      <div className={`fixed inset-0 z-[100] flex md:items-center md:justify-end ${isPanelOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div
+          className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ease-out ${isPanelOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={handleCancel}
+        />
+        <div className={`relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4 transition-transform duration-300 ease-out ${isPanelOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-[120%]"}`}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl md:text-2xl font-semibold">
@@ -268,51 +296,53 @@ export default function Payment() {
             </div>
 
             <form className="space-y-4 flex-1" onSubmit={handleSubmit}>
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Project Name
-                <Select
-                  name="project_id"
-                  value={form.project_id}
-                  onChange={handleChange}
-                  className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
-                  required
-                >
-                  <option value="">Select Project</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Stage Name
-                <div className="flex gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Project Name
                   <Select
-                    name="stage_id"
-                    value={form.stage_id}
+                    name="project_id"
+                    value={form.project_id}
                     onChange={handleChange}
-                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 flex-1"
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
                     required
                   >
-                    <option value="">Select Stage</option>
-                    {stages.map((stage) => (
-                      <option key={stage.id} value={stage.id}>
-                        {stage.name}
+                    <option value="">Select Project</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
                       </option>
                     ))}
                   </Select>
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateStage(true)}
-                    className="rounded border border-gray-300 bg-white p-2 hover:bg-gray-50"
-                    title="Add New Stage"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              </label>
+                </label>
+
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Stage Name
+                  <div className="flex gap-2">
+                    <Select
+                      name="stage_id"
+                      value={form.stage_id}
+                      onChange={handleChange}
+                      className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 flex-1"
+                      required
+                    >
+                      <option value="">Select Stage</option>
+                      {stages.map((stage) => (
+                        <option key={stage.id} value={stage.id}>
+                          {stage.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateStage(true)}
+                      className="rounded border border-gray-300 bg-white p-2 hover:bg-gray-50"
+                      title="Add New Stage"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </label>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Input
@@ -368,32 +398,34 @@ export default function Payment() {
                 )}
               </div>
 
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Payment Mode
-                <Select
-                  name="payment_mode"
-                  value={form.payment_mode}
-                  onChange={handleChange}
-                  className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
-                  required
-                >
-                  <option value="">Select Payment Mode</option>
-                  {PAYMENT_MODES.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                    </option>
-                  ))}
-                </Select>
-              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Payment Mode
+                  <Select
+                    name="payment_mode"
+                    value={form.payment_mode}
+                    onChange={handleChange}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
+                    required
+                  >
+                    <option value="">Select Payment Mode</option>
+                    {PAYMENT_MODES.map((mode) => (
+                      <option key={mode} value={mode}>
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
 
-              <Input
-                label="Payment Date"
-                type="date"
-                name="payment_date"
-                value={form.payment_date}
-                onChange={handleChange}
-                required
-              />
+                <Input
+                  label="Payment Date"
+                  type="date"
+                  name="payment_date"
+                  value={form.payment_date}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
                 Notes
@@ -424,7 +456,7 @@ export default function Payment() {
                 <button
                   type="submit"
                   disabled={createMutation.isLoading}
-                  className="rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createMutation.isLoading ? "Adding..." : "Add"}
                 </button>
@@ -432,7 +464,6 @@ export default function Payment() {
             </form>
           </div>
         </div>
-      )}
 
       {/* Create Stage Modal */}
       {showCreateStage && (
@@ -461,7 +492,7 @@ export default function Payment() {
                 type="button"
                 onClick={handleCreateStage}
                 disabled={createStageMutation.isLoading}
-                className="rounded bg-blue-600 hover:bg-blue-700 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createStageMutation.isLoading ? "Adding..." : "Add"}
               </button>

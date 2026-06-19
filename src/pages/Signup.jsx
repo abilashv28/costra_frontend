@@ -104,7 +104,7 @@ export default function Signup() {
                 type="button"
                 onClick={handleCreateCompany}
                 disabled={!newCompanyName.trim() || createCompanyMutation.isLoading}
-                className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createCompanyMutation.isLoading ? "Creating..." : "Create"}
               </button>
@@ -169,7 +169,7 @@ export default function Signup() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={signupMutation.isLoading}
           >
             {signupMutation.isLoading ? "Signing up..." : "Create Account"}

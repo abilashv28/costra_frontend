@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Trash2, Download } from "lucide-react/dist/esm/lucide-react.mjs";
+import { Edit3, Trash2, Download, Plus, X, Edit2, CheckCircle2, ChevronRight, ListFilter } from "lucide-react/dist/esm/lucide-react.mjs";
 import { createExpense, getExpenses, updateExpense, deleteExpense } from "../api/expenseApi";
 import { getCategories, createCategory } from "../api/categoryApi";
 import { getProjects } from "../api/projectApi";
 import { getPresignedUrl, uploadToS3, getFileUrl } from "../api/attachmentApi";
+import { downloadExcel } from "../utils/exportUtils";
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Table from "../components/common/Table";
@@ -258,9 +259,24 @@ export default function Expenses() {
     setDeleteConfirmation(null);
   };
 
+  const filteredExpenses = useMemo(() => {
+    return data?.data?.filter(expense => (expense.Project?.name || "").toLowerCase().includes(searchQuery.toLowerCase())) || [];
+  }, [data, searchQuery]);
+
   if (isLoading) return <p>Loading...</p>;
 
-  const filteredExpenses = data?.data?.filter(expense => (expense.Project?.name || "").toLowerCase().includes(searchQuery.toLowerCase())) || [];
+  const exportHeaders = [
+    { label: "Date", key: "expense_date", format: (v) => v ? new Date(v).toLocaleDateString() : "" },
+    { label: "Project", key: "Project", format: (v) => v?.name || "" },
+    { label: "Category", key: "Category", format: (v) => v?.name || "" },
+    { label: "Amount", key: "amount" },
+    { label: "GST Amount", key: "gst_amount" },
+    { label: "Notes", key: "notes" },
+  ];
+
+  const handleExportExcel = () => {
+    downloadExcel(filteredExpenses, exportHeaders, "Expenses", "expenses.xlsx");
+  };
 
   return (
     <div className="space-y-6">
@@ -269,12 +285,21 @@ export default function Expenses() {
           <h1 className="text-xl md:text-2xl font-bold">Expenses</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">Track all your project expenses</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsPanelOpen(true)}
-          className="inline-flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition w-full sm:w-auto">
-          Create Expense
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center justify-center gap-2 rounded border border-gray-300 bg-white hover:bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition flex-1 sm:flex-auto"
+            title="Export to Excel">
+            <Download size={16} /> Excel
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsPanelOpen(true)}
+            className="inline-flex items-center justify-center gap-1 rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition flex-[2] sm:flex-auto">
+            <Plus size={16} /> Create
+          </button>
+        </div>
       </div>
 
       <section className="bg-white p-4 md:p-6 rounded shadow">
@@ -289,6 +314,8 @@ export default function Expenses() {
         </div>
         <h2 className="text-lg md:text-xl font-semibold mb-4">Expense List</h2>
         <Table
+          filterable={true}
+          excludeFilters={["actions", "file", "notes"]}
           columns={columns}
           data={
             filteredExpenses.map(expense => ({
@@ -333,9 +360,12 @@ export default function Expenses() {
         />
       </section>
 
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex md:items-center md:justify-end">
-          <div className="relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4">
+      <div className={`fixed inset-0 z-[100] flex md:items-center md:justify-end ${isPanelOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div
+          className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ease-out ${isPanelOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={handleCancel}
+        />
+        <div className={`relative w-full md:w-full md:max-w-md h-full md:h-auto md:rounded-lg flex flex-col overflow-y-auto bg-white p-4 md:p-6 shadow-xl md:mr-4 transition-transform duration-300 ease-out ${isPanelOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-[120%]"}`}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl md:text-2xl font-semibold">{editingExpenseId ? "Edit Expense" : "New Expense"}</h2>
@@ -349,16 +379,66 @@ export default function Expenses() {
             </div>
 
             <form className="space-y-4 flex-1" onSubmit={handleSubmit}>
-              <Input
-                label="Amount"
-                type="number"
-                name="amount"
-                value={form.amount}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                required
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Project
+                  <Select
+                    name="project_id"
+                    value={form.project_id}
+                    onChange={handleChange}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
+                    required>
+                    <option value="">Select a project</option>
+                    {projectsData?.data?.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Category
+                  <Select
+                    name="category_id"
+                    value={form.category_id}
+                    onChange={handleChange}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
+                    required>
+                    <option value="">Select a category</option>
+                    <option value="create" className="font-medium text-blue-600">
+                      ➕ Create a category
+                    </option>
+                    {categoriesData?.data?.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Amount"
+                  type="number"
+                  name="amount"
+                  value={form.amount}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  required
+                />
+                
+                <Input
+                  label="Expense Date"
+                  type="date"
+                  name="expense_date"
+                  value={form.expense_date}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
               <div className="flex items-center gap-4">
                 <label className="inline-flex items-center gap-2 text-sm">
@@ -388,52 +468,6 @@ export default function Expenses() {
                   </div>
                 )}
               </div>
-
-              <Input
-                label="Expense Date"
-                type="date"
-                name="expense_date"
-                value={form.expense_date}
-                onChange={handleChange}
-                required
-              />
-
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Project
-                <Select
-                  name="project_id"
-                  value={form.project_id}
-                  onChange={handleChange}
-                  className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
-                  required>
-                  <option value="">Select a project</option>
-                  {projectsData?.data?.map(project => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Category
-                <Select
-                  name="category_id"
-                  value={form.category_id}
-                  onChange={handleChange}
-                  className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
-                  required>
-                  <option value="">Select a category</option>
-                  <option value="create" className="font-medium text-blue-600">
-                    ➕ Create a category
-                  </option>
-                  {categoriesData?.data?.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </label>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
                 Notes
@@ -481,17 +515,17 @@ export default function Expenses() {
                 <button
                   type="submit"
                   disabled={mutation.isLoading || isUploading}
-                  className="rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {isUploading ? "Uploading..." : mutation.isLoading ? "Saving..." : editingExpenseId ? "Update" : "Save"}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
 
       {deleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteConfirmation(null)} />
           <div className="relative rounded-lg bg-white p-4 md:p-6 shadow-xl max-w-sm w-full">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Confirm Delete</h3>
             <p className="text-sm md:text-base text-gray-600 mb-6">
@@ -541,7 +575,7 @@ export default function Expenses() {
                 <button
                   type="submit"
                   disabled={createCategoryMutation.isLoading}
-                  className="rounded bg-blue-600 hover:bg-blue-700 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {createCategoryMutation.isLoading ? "Creating..." : "Create"}
                 </button>
               </div>

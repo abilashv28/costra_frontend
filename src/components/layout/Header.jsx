@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, LogOut, ChevronDown, Users } from "lucide-react/dist/esm/lucide-react.mjs";
+import { LogOut, ChevronDown, Users } from "lucide-react/dist/esm/lucide-react.mjs";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/authStore";
 import { theme } from "../../theme";
@@ -26,18 +26,10 @@ export default function Header({ toggleSidebar }) {
     <header id="tour-header" className={theme.layout.header}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
 
-        {/* ✅ Mobile Menu Button Only */}
-        {isAuthenticated ? (
-          <button
-            onClick={toggleSidebar}
-            className="md:hidden inline-flex items-center justify-center rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition"
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-        ) : (
-          <div className="w-10 md:hidden" />
-        )}
+        {/* Mobile Spacer to keep right side aligned if needed, or just let logo/title take space */}
+        <div className="w-10 md:hidden flex items-center">
+          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">C</span>
+        </div>
 
         {/* Right Side User Menu */}
         {isAuthenticated && (

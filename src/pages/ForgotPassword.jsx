@@ -53,7 +53,7 @@ export default function ForgotPassword() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={mutation.isPending}
               >
                 {mutation.isPending ? "Sending..." : "Send Reset Link"}
@@ -92,7 +92,7 @@ export default function ForgotPassword() {
             </p>
             <Link
               to="/login"
-              className="w-full inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base"
+              className="w-full inline-block bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 text-white font-medium py-2 md:py-3 rounded-lg transition text-sm md:text-base"
             >
               Back to Login
             </Link>

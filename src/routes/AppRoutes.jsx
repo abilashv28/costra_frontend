@@ -5,6 +5,8 @@ import ProjectDetails from "../pages/ProjectDetails";
 import Expenses from "../pages/Expenses";
 import Payment from "../pages/Payment";
 import Users from "../pages/Users";
+import Clients from "../pages/Clients";
+import AuditLogs from "../pages/AuditLogs";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import SetPassword from "../pages/SetPassword";
@@ -71,6 +73,34 @@ export default function AppRoutes() {
           isAuthenticated ? (
             isAdminOrSuperAdmin ? (
               <Users />
+            ) : (
+              <Unauthorized />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          isAuthenticated ? (
+            isAdminOrSuperAdmin ? (
+              <Clients />
+            ) : (
+              <Unauthorized />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/audit-logs"
+        element={
+          isAuthenticated ? (
+            isAdminOrSuperAdmin ? (
+              <AuditLogs />
             ) : (
               <Unauthorized />
             )

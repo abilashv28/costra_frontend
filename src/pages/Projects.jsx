@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Eye, Edit3, Trash2 } from "lucide-react/dist/esm/lucide-react.mjs";
+import { Eye, Edit3, Trash2, Download } from "lucide-react/dist/esm/lucide-react.mjs";
+import { downloadExcel } from "../utils/exportUtils";
 
 import {
   createProject,
@@ -13,6 +14,7 @@ import {
   updateProject,
   deleteProject,
 } from "../api/projectApi";
+import { getClients } from "../api/clientApi";
 
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
@@ -25,6 +27,7 @@ export default function Projects() {
 
   const [form, setForm] = useState({
     client_name: "",
+    client_id: "",
     budget: "",
     location: "",
     projecttype: "",
@@ -40,10 +43,16 @@ export default function Projects() {
   const [deleteConfirmation, setDeleteConfirmation] =
     useState(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading: projectsLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: getProjects,
   });
+
+  const { data: clientsData } = useQuery({
+    queryKey: ["clients"],
+    queryFn: getClients,
+  });
+  const clients = clientsData?.data || [];
 
   const mutation = useMutation({
     mutationFn: (payload) => {
@@ -61,6 +70,7 @@ export default function Projects() {
 
       setForm({
         client_name: "",
+        client_id: "",
         budget: "",
         location: "",
         projecttype: "",
@@ -88,6 +98,7 @@ export default function Projects() {
     const payload = {
       name: projectName,
       client_name: form.client_name.trim(),
+      client_id: form.client_id,
       budget: Number(form.budget),
       location: form.location.trim(),
       projecttype: form.projecttype,
@@ -112,6 +123,7 @@ export default function Projects() {
 
     setForm({
       client_name: "",
+      client_id: "",
       budget: "",
       location: "",
       projecttype: "",
@@ -125,9 +137,10 @@ export default function Projects() {
   const handleEdit = (project) => {
     setForm({
       client_name: project.client_name || "",
+      client_id: project.client_id || "",
       budget: project.budget || "",
       location: project.location || "",
-      projecttype: project.projecttype || "",
+      projecttype: project.projecttype || "interior",
     });
 
     setEditingProjectId(project.id);
@@ -159,16 +172,31 @@ export default function Projects() {
     setDeleteConfirmation(null);
   };
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
-  const filteredProjects =
-    data?.data?.filter((project) =>
+  const filteredProjects = useMemo(() => {
+    return data?.data?.filter((project) =>
       project.name
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase())
     ) || [];
+  }, [data, searchQuery]);
+
+  if (projectsLoading) {
+    return <p>Loading...</p>;
+  }
+
+  const exportHeaders = [
+    { label: "Project ID", key: "id" },
+    { label: "Name", key: "name" },
+    { label: "Client Name", key: "client_name" },
+    { label: "Project Type", key: "projecttype" },
+    { label: "Location", key: "location" },
+    { label: "Budget", key: "budget" },
+    { label: "Created At", key: "createdAt", format: (v) => v ? new Date(v).toLocaleDateString() : "" },
+  ];
+
+  const handleExportExcel = () => {
+    downloadExcel(filteredProjects, exportHeaders, "Projects", "projects.xlsx");
+  };
 
   return (
     <div className="space-y-6">
@@ -184,24 +212,32 @@ export default function Projects() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setEditingProjectId(null);
-
-            setForm({
-              client_name: "",
-              budget: "",
-              location: "",
-              projecttype: "",
-            });
-
-            setIsPanelOpen(true);
-          }}
-          className="inline-flex w-full items-center justify-center rounded bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-blue-500 hover:via-cyan-400 hover:to-sky-600 sm:w-auto"
-        >
-          Create Project
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center justify-center gap-2 rounded border border-gray-300 bg-white hover:bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition flex-1 sm:flex-auto"
+            title="Export to Excel">
+            <Download size={16} /> Excel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingProjectId(null);
+              setForm({
+                client_name: "",
+                client_id: "",
+                budget: "",
+                location: "",
+                projecttype: "",
+              });
+              setIsPanelOpen(true);
+            }}
+            className="inline-flex items-center justify-center rounded bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-blue-500 hover:via-cyan-400 hover:to-sky-600 flex-[2] sm:flex-auto"
+          >
+            Create Project
+          </button>
+        </div>
       </div>
 
       {/* Table Section */}
@@ -223,6 +259,8 @@ export default function Projects() {
         </h2>
 
         <Table
+          filterable={true}
+          excludeFilters={["actions"]}
           columns={columns}
           data={filteredProjects.map((project) => ({
             ...project,
@@ -261,8 +299,9 @@ export default function Projects() {
 
       {/* Delete Modal */}
       {deleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="w-full max-w-sm rounded-lg bg-white p-4 shadow-xl md:p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={cancelDelete} />
+          <div className="relative w-full max-w-sm rounded-lg bg-white p-4 shadow-xl md:p-6">
             <h3 className="mb-2 text-lg font-semibold text-gray-900 md:text-xl">
               Confirm Delete
             </h3>
@@ -293,17 +332,16 @@ export default function Projects() {
         </div>
       )}
 
-      {/* Drawer Panel */}
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex md:items-center md:justify-end">
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/30"
-            onClick={handleCancel}
-          />
+      {/* Add/Edit Project Panel */}
+      <div className={`fixed inset-0 z-[100] flex md:items-center md:justify-end ${isPanelOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        {/* Overlay */}
+        <div
+          className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ease-out ${isPanelOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={handleCancel}
+        />
 
-          {/* Drawer */}
-          <div className="relative flex h-full w-full flex-col overflow-y-auto bg-white p-4 shadow-xl md:mr-4 md:h-auto md:max-w-md md:rounded-lg md:p-6">
+        {/* Drawer */}
+        <div className={`relative flex h-full w-full flex-col overflow-y-auto bg-white p-4 shadow-xl md:mr-4 md:h-auto md:max-w-md md:rounded-lg md:p-6 transition-transform duration-300 ease-out ${isPanelOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-[120%]"}`}>
             {/* Header */}
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
@@ -348,61 +386,77 @@ export default function Projects() {
                 </p>
               </div>
 
-              {/* Project Type */}
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Project Type
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Project Type */}
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Project Type
+                  <Select
+                    name="projecttype"
+                    value={form.projecttype}
+                    onChange={handleChange}
+                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    required
+                  >
+                    <option value="">
+                      Select Project Type
+                    </option>
+                    <option value="building_construction">
+                      Building Construction
+                    </option>
+                    <option value="interior">
+                      Interior
+                    </option>
+                  </Select>
+                </label>
 
-                <Select
-                  name="projecttype"
-                  value={form.projecttype}
+                {/* Client Name */}
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span>Client</span>
+                    <a href="/clients" className="text-xs text-blue-600 hover:underline">
+                      + Add New Client
+                    </a>
+                  </div>
+                  <Select
+                    name="client_id"
+                    value={form.client_id}
+                    onChange={(e) => {
+                      const selected = clients.find(c => c.id === parseInt(e.target.value));
+                      setForm({ ...form, client_id: e.target.value, client_name: selected?.name || "" });
+                    }}
+                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    required
+                  >
+                    <option value="">Select a Client</option>
+                    {clients.map(client => (
+                      <option key={client.id} value={client.id}>{client.name}</option>
+                    ))}
+                  </Select>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Location */}
+                <Input
+                  label="Location"
+                  type="text"
+                  name="location"
+                  value={form.location}
                   onChange={handleChange}
-                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   required
-                >
-                  <option value="">
-                    Select Project Type
-                  </option>
+                />
 
-                  <option value="building_construction">
-                    Building Construction
-                  </option>
-
-                  <option value="interior">
-                    Interior
-                  </option>
-                </Select>
-              </label>
-
-              {/* Client Name */}
-              <Input
-                label="Client Name"
-                type="text"
-                name="client_name"
-                value={form.client_name}
-                onChange={handleChange}
-                required
-              />
-
-              {/* Location */}
-              <Input
-                label="Location"
-                type="text"
-                name="location"
-                value={form.location}
-                onChange={handleChange}
-                required
-              />
-
-              {/* Budget */}
-              <Input
-                label="Budget"
-                type="number"
-                name="budget"
-                value={form.budget}
-                onChange={handleChange}
-                min="0"
-                required
-              />
+                {/* Budget */}
+                <Input
+                  label="Budget"
+                  type="number"
+                  name="budget"
+                  value={form.budget}
+                  onChange={handleChange}
+                  min="0"
+                  required
+                />
+              </div>
 
               {/* Error */}
               {mutation.isError && (
@@ -428,7 +482,7 @@ export default function Projects() {
                 <button
                   type="submit"
                   disabled={mutation.isPending}
-                  className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {mutation.isPending
                     ? "Saving..."
@@ -440,7 +494,6 @@ export default function Projects() {
             </form>
           </div>
         </div>
-      )}
     </div>
   );
 }

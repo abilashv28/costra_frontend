@@ -177,10 +177,10 @@ export default function Dashboard() {
           <button
             key={filter}
             onClick={() => setTimeFilter(filter)}
-            className={`px-4 py-2 rounded-lg font-medium transition text-sm ${
+            className={`px-5 py-2 rounded-xl font-medium transition-all duration-300 text-sm ${
               timeFilter === filter
-                ? "bg-blue-600 text-white shadow-lg"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-cyan-500/30"
+                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:shadow-sm"
             }`}>
             {filter.charAt(0).toUpperCase() + filter.slice(1)}
           </button>
