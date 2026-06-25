@@ -43,7 +43,6 @@ export default function TourGuide() {
       },
     ];
 
-    // Admin/Superadmin specific steps (skip on mobile for sidebar items)
     const adminSteps = !isMobile ? [
       {
         selector: "#Dashboard",
@@ -54,6 +53,10 @@ export default function TourGuide() {
           </div>
         )
       },
+    ] : [];
+
+    // Steps for all authenticated users (skip on mobile)
+    const userSteps = !isMobile ? [
       {
         selector: "#Projects",
         content: (
@@ -63,16 +66,30 @@ export default function TourGuide() {
           </div>
         )
       },
-    ] : [];
-
-    // Steps for all authenticated users (skip on mobile)
-    const userSteps = !isMobile ? [
+      {
+        selector: "#Clients",
+        content: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Clients</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">Manage your clients. You must create clients to assign them to your new projects.</p>
+          </div>
+        )
+      },
       {
         selector: "#Expenses",
         content: (
           <div>
             <h3 className="text-lg font-semibold mb-2 text-gray-900">Expenses</h3>
             <p className="text-sm text-gray-700 leading-relaxed">Track and manage all project-related expenses. Upload attachments and categorize your spending.</p>
+          </div>
+        )
+      },
+      {
+        selector: "#Vendors",
+        content: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Vendors</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">Track vendor details and associate them with projects to accurately monitor service costs.</p>
           </div>
         )
       },
@@ -99,6 +116,15 @@ export default function TourGuide() {
           <div>
             <h3 className="text-lg font-semibold mb-2 text-gray-900">Users</h3>
             <p className="text-sm text-gray-700 leading-relaxed">Manage all team members and their access levels to the system.</p>
+          </div>
+        )
+      },
+      {
+        selector: "#Audit Logs",
+        content: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Audit Logs</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">Review all the critical actions and changes that happen inside your company.</p>
           </div>
         )
       },

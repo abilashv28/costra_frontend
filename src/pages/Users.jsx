@@ -136,22 +136,8 @@ export default function Users() {
           filterable={true}
           excludeFilters={["actions"]}
           columns={columns}
-          data={
-            filteredUsers.map((user) => ({
-              ...user,
-              actions: (
-                <div className="flex items-center gap-1 md:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(user)}
-                    className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-red-500 hover:text-red-600"
-                    title="Delete">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ),
-            })) || []
-          }
+          data={filteredUsers}
+          onDelete={handleDelete}
         />
       </section>
 

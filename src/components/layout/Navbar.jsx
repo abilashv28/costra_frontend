@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { PieChart, Building2, Wallet, ListCollapse, CreditCard, Users, Briefcase, Activity } from "lucide-react/dist/esm/lucide-react.mjs";
+import { PieChart, Building2, Wallet, ListCollapse, CreditCard, Users, Briefcase, Activity, Store } from "lucide-react/dist/esm/lucide-react.mjs";
 import useAuthStore from "../../stores/authStore";
 import { theme } from "../../theme";
 
@@ -27,11 +27,12 @@ export default function Navbar({ isSidebarCollapsed, toggleSidebarCollapse }) {
   }
   
   navItems.push({ id: "Projects", path: "/projects", icon: Building2, label: "Projects" });
+  navItems.push({ id: "Clients", path: "/clients", icon: Briefcase, label: "Clients" });
   navItems.push({ id: "Expenses", path: "/expenses", icon: Wallet, label: "Expenses" });
+  navItems.push({ id: "Vendors", path: "/vendors", icon: Store, label: "Vendors" });
   
   if (isAdminOrSuperAdmin) {
     navItems.push({ id: "Payment", path: "/payment", icon: CreditCard, label: "Payment" });
-    navItems.push({ id: "Clients", path: "/clients", icon: Briefcase, label: "Clients" });
     navItems.push({ id: "Users", path: "/users", icon: Users, label: "Users" });
     navItems.push({ id: "Audit Logs", path: "/audit-logs", icon: Activity, label: "Audit Logs" });
   }

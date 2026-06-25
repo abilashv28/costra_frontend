@@ -250,20 +250,9 @@ export default function Payment() {
               expected_amount: payment.expected_amount
                 ? formatIndianAmount(parseFloat(payment.expected_amount))
                 : "—",
-              amount: formatIndianAmount(parseFloat(payment.amount)),
-              actions: (
-                <div className="flex items-center gap-1 md:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(payment)}
-                    className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-red-500 hover:text-red-600"
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ),
+              amount: formatIndianAmount(parseFloat(payment.amount))
             }))}
+            onDelete={handleDelete}
           />
         ) : (
           <div className="text-center py-12">

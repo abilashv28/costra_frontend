@@ -13,6 +13,7 @@ import { ArrowLeft } from "lucide-react/dist/esm/lucide-react.mjs";
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Table from "../components/common/Table";
+import ProjectVendors from "../components/ProjectVendors";
 
 const PAYMENT_MODES = ["cash", "check", "online", "credit"];
 
@@ -289,6 +290,9 @@ export default function ProjectDetails() {
         )}
       </section>
 
+      {/* Project Vendors Section */}
+      <ProjectVendors projectId={project.id} />
+
       {/* Delete Confirmation Modal */}
       {deleteConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -316,10 +320,10 @@ export default function ProjectDetails() {
               <button
                 type="button"
                 onClick={confirmDelete}
-                disabled={deleteMutation.isLoading}
+                disabled={deleteMutation.isPending}
                 className="rounded bg-red-600 hover:bg-red-700 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
@@ -453,10 +457,10 @@ export default function ProjectDetails() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isLoading}
+                  disabled={createMutation.isPending}
                   className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createMutation.isLoading
+                  {createMutation.isPending
                     ? "Saving..."
                     : editingPaymentId
                       ? "Update"

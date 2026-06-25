@@ -517,7 +517,7 @@ function SwipeableCard({
         <button
           type="button"
           onClick={() => onView?.(row)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-blue-600"
+          className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-blue-600"
         >
           <Eye size={18} />
         </button>
@@ -527,7 +527,7 @@ function SwipeableCard({
         <button
           type="button"
           onClick={() => onEdit?.(row)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-blue-600"
+          className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-blue-600"
         >
           <Edit3 size={18} />
         </button>
@@ -537,7 +537,7 @@ function SwipeableCard({
         <button
           type="button"
           onClick={() => onDelete?.(row)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-red-600"
+          className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-red-600"
         >
           <Trash2 size={18} />
         </button>

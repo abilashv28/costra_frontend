@@ -6,6 +6,7 @@ import Expenses from "../pages/Expenses";
 import Payment from "../pages/Payment";
 import Users from "../pages/Users";
 import Clients from "../pages/Clients";
+import Vendors from "../pages/Vendors";
 import AuditLogs from "../pages/AuditLogs";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
@@ -54,6 +55,10 @@ export default function AppRoutes() {
         element={isAuthenticated ? <Expenses /> : <Navigate to="/login" replace />}
       />
       <Route
+        path="/vendors"
+        element={isAuthenticated ? <Vendors /> : <Navigate to="/login" replace />}
+      />
+      <Route
         path="/payment"
         element={
           isAuthenticated ? (
@@ -83,17 +88,7 @@ export default function AppRoutes() {
       />
       <Route
         path="/clients"
-        element={
-          isAuthenticated ? (
-            isAdminOrSuperAdmin ? (
-              <Clients />
-            ) : (
-              <Unauthorized />
-            )
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
+        element={isAuthenticated ? <Clients /> : <Navigate to="/login" replace />}
       />
       <Route
         path="/audit-logs"

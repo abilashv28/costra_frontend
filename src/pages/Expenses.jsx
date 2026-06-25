@@ -4,6 +4,7 @@ import { Edit3, Trash2, Download, Plus, X, Edit2, CheckCircle2, ChevronRight, Li
 import { createExpense, getExpenses, updateExpense, deleteExpense } from "../api/expenseApi";
 import { getCategories, createCategory } from "../api/categoryApi";
 import { getProjects } from "../api/projectApi";
+import { getVendors } from "../api/vendorApi";
 import { getPresignedUrl, uploadToS3, getFileUrl } from "../api/attachmentApi";
 import { downloadExcel } from "../utils/exportUtils";
 import Input from "../components/common/Input";
@@ -24,7 +25,8 @@ export default function Expenses() {
     gst_amount: "",
     expense_date: "",
     notes: "",
-    file_url: ""
+    file_url: "",
+    vendor_id: ""
   });
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState(null);
@@ -49,6 +51,11 @@ export default function Expenses() {
   const { data: projectsData } = useQuery({
     queryKey: ["projects"],
     queryFn: getProjects
+  });
+
+  const { data: vendorsData } = useQuery({
+    queryKey: ["vendors"],
+    queryFn: getVendors
   });
 
   const createCategoryMutation = useMutation({
@@ -80,7 +87,8 @@ export default function Expenses() {
         amount: "",
         expense_date: "",
         notes: "",
-        file_url: ""
+        file_url: "",
+        vendor_id: ""
       });
       setIsPanelOpen(false);
       setEditingExpenseId(null);
@@ -196,7 +204,8 @@ export default function Expenses() {
       amount: Number(form.amount),
       expense_date: form.expense_date,
       notes: form.notes.trim(),
-      file_url: fileUrl
+      file_url: fileUrl,
+      vendor_id: form.vendor_id ? Number(form.vendor_id) : null
     };
 
     mutation.mutate(payload);
@@ -207,6 +216,7 @@ export default function Expenses() {
     { key: "expense_date", label: "Date" },
     { key: "project_name", label: "Project" },
     { key: "category_name", label: "Category" },
+    { key: "vendor_name", label: "Vendor" },
     { key: "notes", label: "Notes" },
     { key: "file", label: "File" },
     { key: "actions", label: "Actions" }
@@ -220,7 +230,8 @@ export default function Expenses() {
       amount: "",
       expense_date: "",
       notes: "",
-      file_url: ""
+      file_url: "",
+      vendor_id: ""
     });
     setEditingExpenseId(null);
     setSelectedFile(null);
@@ -234,7 +245,8 @@ export default function Expenses() {
       amount: expense.amount,
       expense_date: expense.expense_date,
       notes: expense.notes,
-      file_url: expense.file_url || ""
+      file_url: expense.file_url || "",
+      vendor_id: expense.vendor_id || ""
     });
     setEditingExpenseId(expense.id);
     setIsPanelOpen(true);
@@ -269,6 +281,7 @@ export default function Expenses() {
     { label: "Date", key: "expense_date", format: (v) => v ? new Date(v).toLocaleDateString() : "" },
     { label: "Project", key: "Project", format: (v) => v?.name || "" },
     { label: "Category", key: "Category", format: (v) => v?.name || "" },
+    { label: "Vendor", key: "Vendor", format: (v) => v?.name || "" },
     { label: "Amount", key: "amount" },
     { label: "GST Amount", key: "gst_amount" },
     { label: "Notes", key: "notes" },
@@ -324,6 +337,7 @@ export default function Expenses() {
               expense_date: formatDate(expense.expense_date),
               project_name: expense.Project?.name || "N/A",
               category_name: expense.Category?.name || "N/A",
+              vendor_name: expense.Vendor?.name || "—",
               file: expense.file_url ? (
                 <a
                   href={expense.file_url}
@@ -337,26 +351,10 @@ export default function Expenses() {
               ) : (
                 <span className="text-gray-400 text-sm">No file</span>
               ),
-              actions: (
-                <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(expense)}
-                    className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
-                    title="Edit">
-                    <Edit3 size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(expense)}
-                    className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-red-500 hover:text-red-600"
-                    title="Delete">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )
             })) || []
           }
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </section>
 
@@ -412,6 +410,23 @@ export default function Expenses() {
                     {categoriesData?.data?.map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+
+                <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+                  Vendor (Optional)
+                  <Select
+                    name="vendor_id"
+                    value={form.vendor_id}
+                    onChange={handleChange}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full"
+                  >
+                    <option value="">-- No Vendor --</option>
+                    {vendorsData?.data?.map(vendor => (
+                      <option key={vendor.id} value={vendor.id}>
+                        {vendor.name} ({vendor.service_type || 'General'})
                       </option>
                     ))}
                   </Select>
@@ -508,15 +523,15 @@ export default function Expenses() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  disabled={isUploading || mutation.isLoading}
+                  disabled={isUploading || mutation.isPending}
                   className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={mutation.isLoading || isUploading}
+                  disabled={mutation.isPending || isUploading}
                   className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isUploading ? "Uploading..." : mutation.isLoading ? "Saving..." : editingExpenseId ? "Update" : "Save"}
+                  {isUploading ? "Uploading..." : mutation.isPending ? "Saving..." : editingExpenseId ? "Update" : "Save"}
                 </button>
               </div>
             </form>
@@ -574,9 +589,9 @@ export default function Expenses() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createCategoryMutation.isLoading}
+                  disabled={createCategoryMutation.isPending}
                   className="rounded bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:-translate-y-0.5 px-3 md:px-4 py-2 text-sm font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
-                  {createCategoryMutation.isLoading ? "Creating..." : "Create"}
+                  {createCategoryMutation.isPending ? "Creating..." : "Create"}
                 </button>
               </div>
             </form>

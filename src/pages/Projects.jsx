@@ -264,36 +264,11 @@ export default function Projects() {
           columns={columns}
           data={filteredProjects.map((project) => ({
             ...project,
-            budget: formatIndianAmount(project.budget),
-            actions: (
-              <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleView(project)}
-                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
-                  title="View"
-                >
-                  <Eye size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleEdit(project)}
-                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
-                  title="Edit"
-                >
-                  <Edit3 size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(project)}
-                  className="rounded border border-gray-200 bg-white p-1.5 md:p-2 text-gray-600 transition hover:border-red-500 hover:text-red-600"
-                  title="Delete"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ),
+            budget: formatIndianAmount(project.budget)
           }))}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </section>
 
